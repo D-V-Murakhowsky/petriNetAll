@@ -1,5 +1,5 @@
 from .models import Element
-from typing import Literal, List
+from typing import Literal, NoReturn
 from typing import TYPE_CHECKING
 from numpy.random import default_rng
 from numpy import ceil
@@ -38,28 +38,53 @@ class Transition(Element):
         return f'Transition: {self._id}, type={self._dist_type}, load={self.load}'
 
     def process(self, timer: int):
+        """
+        Main method
+        :param timer: current imitation time
+        :return: time moments to add in general time moments queue
+        """
         self._filter_and_sort_storage(timer)
         self._hold(timer)
         self._release(timer)
         return self._storage
 
-    def _filter_and_sort_storage(self, timer: int):
+    def _filter_and_sort_storage(self, timer: int) -> NoReturn:
+        """
+        Time momemts' storage cleaner
+        :param timer: current imitation time
+        :return: None
+        """
         if len(self._storage) > 0:
             self._storage = sorted(list(filter(lambda x: x >= timer, self._storage)))
 
-    def _hold(self, timer: int):
+    def _hold(self, timer: int) -> NoReturn:
+        """
+        Gets markers from inputs
+        :param timer: current imitation time
+        :return: None
+        """
         transition_quantity = min([_input[0].load for _input in self._inputs])
         for _input in self._inputs:
             _input[0].exclude(transition_quantity)
         for _ in range(transition_quantity):
             self._storage.append(self._generate_fin_time(timer))
 
-    def _release(self, timer: int):
+    def _release(self, timer: int) -> NoReturn:
+        """
+        Put markers in the outputs
+        :param timer: current imitation time
+        :return: None
+        """
         transition_quantity = len(list(filter(lambda x: x == timer, self._storage)))
         for output in self._outputs:
             output[0].append(transition_quantity)
 
-    def _generate_fin_time(self, timer: int):
+    def _generate_fin_time(self, timer: int) -> float:
+        """
+        Generates final procession time for a marker
+        :param timer: current imitation time
+        :return: time moment
+        """
         match self._dist_type:
             case 'const':
                 return timer + self._loc
