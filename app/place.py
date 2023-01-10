@@ -11,11 +11,14 @@ class Place(Element):
 
     _num_id = 0
 
-    def __init__(self, parent: "Simulation", capacity: int = np.inf, str_id: str = ''):
+    def __init__(self, parent: "Simulation", capacity: int = np.inf, str_id: str = '', initial_load: int = 0):
         super().__init__(parent, capacity, str_id)
 
         self._num_id = Place._num_id
         Place._num_id += 1
+
+        if initial_load > 0:
+            self._storage.extend([Entity(timer=0) for _ in range(initial_load)])
 
     def __repr__(self):
         return f'Place: {self._id}, capacity={self._capacity}, load={self.load}'

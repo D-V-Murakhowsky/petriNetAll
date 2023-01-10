@@ -10,32 +10,6 @@ if TYPE_CHECKING:
 import numpy as np
 
 
-class Entity:
-
-    def __init__(self, timer: int):
-        self._start_time = timer
-        self._fin_time = -1
-        self._transition_time = -1
-
-    @property
-    def is_marked(self):
-        return self._transition_time != -1
-
-    @property
-    def transition_time(self):
-        return self._transition_time
-
-    @transition_time.setter
-    def transition_time(self, value):
-        self._transition_time = value
-
-    def reset_transition_time(self):
-        self._transition_time = -1
-
-    def __repr__(self):
-        return f'Entity (gen_time={self._start_time}, marked={self.is_marked})'
-
-
 class SortedQueue:
 
     def __init__(self):
@@ -85,16 +59,13 @@ class Element(ABC):
 
     def __init__(self, parent: "Simulation", capacity: int = np.inf, str_id: str = ''):
         self._capacity = capacity
-        self._storage = []
         self._parent = parent
         self._id = str_id
 
         self._inputs = []
         self._outputs = []
 
-    @property
-    def elements(self):
-        return self._storage
+        self._load = 0
 
     @property
     def is_full(self):
@@ -102,23 +73,19 @@ class Element(ABC):
 
     @property
     def load(self):
-        return len(self._storage)
+        return self._load
 
     @property
-    def non_marked(self):
-        return sum(list(map(lambda x: 0 if x.is_marked else 1, self._storage)))
+    def str_id(self):
+        return self._id
 
-    def add_input(self, element: "Element"):
-        self._inputs.append(element)
+    def add_input(self, element: "Element", multiplicity: int):
+        self._inputs.append((element, multiplicity))
 
-    def add_output(self, element: "Element"):
-        self._outputs.append(element)
+    def add_output(self, element: "Element", multiplicity: int):
+        self._outputs.append((element, multiplicity))
 
     def process(self, timer: int):
         pass
-
-    def put(self, entity: Entity):
-        self._storage.append(entity)
-
 
 

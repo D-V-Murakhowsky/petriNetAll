@@ -64,19 +64,19 @@ class Simulation_1(Simulation):
                        ('ForthAggregate->FifthAggregate', 'FifthAggregateBusy', 1),
 
                        ('FirstAggregateFree', 'Process_1', 1),
-                       ('Process_1', 'Stock', 1),
+                       ('Process_1', 'Terminator', 1),
 
                        ('SecondAggregateFree', 'Process_2', 1),
-                       ('Process_2', 'Stock', 1),
+                       ('Process_2', 'Terminator', 1),
 
                        ('ThirdAggregateFree', 'Process_3', 1),
-                       ('Process_3', 'Stock', 1),
+                       ('Process_3', 'Terminator', 1),
 
                        ('ForthAggregateFree', 'Process_4', 1),
-                       ('Process_4', 'Stock', 1),
+                       ('Process_4', 'Terminator', 1),
 
                        ('FifthAggregateFree', 'Process_5', 1),
-                       ('Process_5', 'Stock', 1),
+                       ('Process_5', 'Terminator', 1),
 
                        ('FifthAggregateBusy', 'FifthAggregate->LineStart', 1),
                        ('FifthAggregate->LineStart', 'LineStart', 1)])
