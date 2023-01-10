@@ -10,3 +10,6 @@ class Terminator(Element):
 
     def __repr__(self):
         return f'{self._id if self._id != "" else "Terminator"}. Arrived {self.load} elements'
+
+    def append(self, num: int = 1):
+        self._load += num

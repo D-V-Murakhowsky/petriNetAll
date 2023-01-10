@@ -28,6 +28,7 @@ class EasySimulation(Simulation):
         self.set_arcs([
             ('Generator', 'Arrival', 1),
             ('Arrival', 'Arrival->Successful', 1),
+            ('Stock_qty', 'Arrival->Successful', 1),
             ('Arrival', 'Arrival->Unsuccessful', 1),
             ('Arrival->Successful', 'Successful', 1),
             ('Arrival->Unsuccessful', 'Unsuccessful', 1),

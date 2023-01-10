@@ -32,59 +32,32 @@ class Transition(Element):
                 raise ValueError('Unknown distribution type')
 
         self._random_generator = default_rng()
+        self._storage = []
 
     def __repr__(self):
         return f'Transition: {self._id}, type={self._dist_type}, load={self.load}'
 
     def process(self, timer: int):
+        self._filter_and_sort_storage(timer)
         self._hold(timer)
         self._release(timer)
+        return self._storage
 
-
-        # times = self._generate_transition_times(timer)
-        # self._make_transitions(timer)
-        # self._storage = list(filter(lambda x: x[0] > timer, self._storage))
-        # return times
+    def _filter_and_sort_storage(self, timer: int):
+        if len(self._storage) > 0:
+            self._storage = sorted(list(filter(lambda x: x >= timer, self._storage)))
 
     def _hold(self, timer: int):
         transition_quantity = min([_input[0].load for _input in self._inputs])
         for _input in self._inputs:
-            pass
-
+            _input[0].exclude(transition_quantity)
+        for _ in range(transition_quantity):
+            self._storage.append(self._generate_fin_time(timer))
 
     def _release(self, timer: int):
-        pass
-
-    def _generate_transition_times(self, timer: int):
-        times = []
-        while self._check_condition():
-            for input_element in self._inputs:
-                for element in self._get_quota(input_element[0].elements):
-                    if element.transition_time == -1:
-                        element.transition_time = self._generate_fin_time(timer)
-                        times.append(element.transition_time)
-        return times
-
-    def _make_transitions(self, timer: int):
-        list_to_unload, transited = [], []
-        for element_input in self._inputs:
-            values = list(filter(lambda x: x.transition_time == timer, element_input.elements))
-            list_to_unload.extend(values)
-        if len(self._outputs) > 0:
-            for output in self._outputs:
-                while (not output.is_full) & (len(list_to_unload) > 0):
-                    output.append(value := list_to_unload.pop(0))
-                    value.reset_transition_time()
-                    transited.append(value)
-        for input_element in self._inputs:
-            input_element.exclude(transited)
-        pass
-
-    def _check_condition(self):
-        for input_element in self._inputs:
-            if input_element[0].non_marked == 0:
-                return False
-        return True
+        transition_quantity = len(list(filter(lambda x: x == timer, self._storage)))
+        for output in self._outputs:
+            output[0].append(transition_quantity)
 
     def _generate_fin_time(self, timer: int):
         match self._dist_type:
