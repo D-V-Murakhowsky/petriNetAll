@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List
 
-from .models import Element, Entity
+from .models import Element
 if TYPE_CHECKING:
     from .base_simulation import Simulation
 
@@ -18,7 +18,7 @@ class Place(Element):
         Place._num_id += 1
 
         if initial_load > 0:
-            self._storage.extend([Entity(timer=0) for _ in range(initial_load)])
+            self._load = initial_load
 
     def __repr__(self):
         return f'Place: {self._id}, capacity={self._capacity}, load={self.load}'
@@ -27,15 +27,12 @@ class Place(Element):
     def is_full(self):
         return self.load == self._capacity
 
-    def exclude(self, entities: List[Entity]):
-        self._storage = list(filter(lambda x: x not in entities, self._storage))
+    def exclude(self, num: int = 1):
+        self._load -= num
 
-    def put(self, entity: Entity):
-        if len(self._storage) < self._capacity:
-            self._storage.append(entity)
+    def append(self, num: int = 1):
+        if self._load < self._capacity:
+            self._load += num
             return True
         else:
             return False
-
-    def pop_first(self):
-        return self._storage.pop(0)

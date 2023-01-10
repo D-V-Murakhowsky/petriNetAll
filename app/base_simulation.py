@@ -65,9 +65,6 @@ class Simulation(ABC):
         for name in names:
             self._stocks.append(Terminator(parent=self, str_id=name))
 
-    def init_time_intervals(self, time_intervals: List[int]):
-        self._time_moments.update(time_intervals)
-
     def set_arcs(self, list_of_arcs: List[Tuple[str, str, int]]):
         for arc_in, arc_out, multiplicity in list_of_arcs:
             self._set_arc(arc_in, arc_out, multiplicity)
@@ -105,7 +102,7 @@ class Simulation(ABC):
         logging.debug('Simulation has started')
 
         for generator in self._generators:
-            generator.generate_tokens()
+            self._time_moments.check_update(generator.generate_tokens())
 
         timer = self._time_moments.get()
 

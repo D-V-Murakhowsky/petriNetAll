@@ -1,4 +1,4 @@
-from .models import Element, Entity
+from .models import Element
 from typing import Literal, List
 from typing import TYPE_CHECKING
 from numpy.random import default_rng
@@ -49,7 +49,7 @@ class Transition(Element):
     def _hold(self, timer: int):
         transition_quantity = min([_input[0].load for _input in self._inputs])
         for _input in self._inputs:
-            quota
+            pass
 
 
     def _release(self, timer: int):
@@ -73,7 +73,7 @@ class Transition(Element):
         if len(self._outputs) > 0:
             for output in self._outputs:
                 while (not output.is_full) & (len(list_to_unload) > 0):
-                    output.put(value := list_to_unload.pop(0))
+                    output.append(value := list_to_unload.pop(0))
                     value.reset_transition_time()
                     transited.append(value)
         for input_element in self._inputs:
@@ -85,13 +85,6 @@ class Transition(Element):
             if input_element[0].non_marked == 0:
                 return False
         return True
-
-    @staticmethod
-    def _get_quota(elements: List[Entity], quota: int = -1):
-        if (quota <= 0) | (len(elements) <= quota):
-            return elements
-        else:
-            return elements[:quota]
 
     def _generate_fin_time(self, timer: int):
         match self._dist_type:

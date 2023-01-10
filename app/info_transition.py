@@ -8,6 +8,6 @@ class InfoTransition(Transition):
 
     def _make_transitions(self, timer: int, condition: Callable):
         if condition:
-            self._outputs[0].put(Entity(timer=timer))
+            self._outputs[0].append(Entity(timer=timer))
         else:
-            self._outputs[1].put(Entity(timer=timer))
+            self._outputs[1].append(Entity(timer=timer))
