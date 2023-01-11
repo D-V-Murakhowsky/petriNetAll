@@ -9,6 +9,8 @@ from app.conditional_transition import ConditionalTransition
 import matplotlib.pyplot as plt
 from random import seed
 import numpy as np
+import seaborn as sns
+import scipy.stats as stats
 
 
 class FullSimulation(Simulation):
@@ -79,51 +81,50 @@ class FullSimulation(Simulation):
     def _show_monitoring(self):
         start_delivery = self.get_element_by_id('Control->Request_completed').hold_times
         stop_delivery = self.get_element_by_id('Delivery').release_times
-        print(f'Середнє завантаження складу: {self._get_stock_load():.3f}')
-        print(f'Delivery started: {len(start_delivery)}')
-        print(f'Delivery stopped: {len(stop_delivery)}')
+        delivery_times = np.array(stop_delivery) - np.array(start_delivery)
+        print(f'\nДоставку розпочато: {len(start_delivery)} разів')
+        print(f'Доставку виконано: {len(stop_delivery)} разів')
+        print(f'Мінімальний час доставки: {delivery_times.min()}')
+        print(f'Максимальний час доставки: {delivery_times.max()}')
+        print(f'Середнє завантаження складу: {self._get_stock_load(plot=False):.3f}')
 
-    def _get_stock_load(self):
+    def _get_stock_load(self, plot=False):
         times, stock = [], []
         for moment in self._stock_monitor:
             times.append(moment[0])
             stock.append(moment[1])
         times = np.array(times)
-        plt.step(times, stock)
-        plt.show()
+        if plot:
+            plt.step(times, stock)
+            plt.show()
         return np.dot(np.array(stock)[:-1], times[1:] - times[:-1]) / self._max_time
 
 
 class TestFullSimulation(TestCase):
 
     def setUp(self) -> None:
-        self.simulation = FullSimulation(max_time=30000, intergeneration_time=(50, 70), stock_min=3)
+        self.simulation = FullSimulation(max_time=30000, intergeneration_time=(50, 70), stock_min=5)
 
     def test_run_simulation(self):
         self.simulation.run()
 
     def test_run_simulation_series(self):
-        times = np.linspace(200, 50000, 250)
         results_prob, results_avg_load = [], []
+        times = np.linspace(0, 6, 7)
         for time in times:
-            values_prob, values_avg = [], []
-            for _ in range(3):
-                simulation = FullSimulation(max_time=time, intergeneration_time=(50, 70), stock_min=3)
-                prob, avg_load = simulation.run()
-                values_prob.append(prob)
-                values_avg.append(avg_load)
-            results_prob.append(values_prob)
-            results_avg_load.append(values_avg)
+            simulation = FullSimulation(max_time=35000, intergeneration_time=(50, 70), stock_min=time)
+            prob, avg_load = simulation.run()
+            results_prob.append(prob)
+            results_avg_load.append(avg_load)
 
-        results_prob = np.array(results_prob)
-        results_avg_load = np.array(results_avg_load)
-        fig, axs = plt.subplots(2, 1)
-        axs[0].plot(times, results_prob[:, 0])
-        axs[0].plot(times, results_prob[:, 1])
-        axs[0].plot(times, results_prob[:, 2])
-        axs[1].plot(times, results_avg_load[:, 0])
-        axs[1].plot(times, results_avg_load[:, 1])
-        axs[1].plot(times, results_avg_load[:, 2])
+        fig, ax = plt.subplots(2, 1)
+        ax[0].plot(times, results_prob)
+        ax[0].set_xlabel('Пороговий залишок, шт')
+        ax[0].set_ylabel('Середня ймовірність простою')
+        ax[1].plot(times, results_avg_load)
+        ax[1].set_xlabel('Пороговий залишок, шт')
+        ax[1].set_ylabel('Середнє завантаження складу')
+        plt.subplots_adjust(wspace=0.6, hspace=0.6)
         plt.show()
 
 
