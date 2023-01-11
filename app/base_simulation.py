@@ -113,6 +113,9 @@ class Simulation(ABC):
 
             for generator in self._generators:
                 generator.process(timer=timer)
+
+            pass
+
             for transition in self.transitions:
                 times = list(filter(lambda x: self._max_time >= x > timer, transition.process(timer=timer)))
                 self._time_moments.check_update(times)

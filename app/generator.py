@@ -36,7 +36,8 @@ class Generator(Element):
         return self._timer_list
 
     def process(self, timer: int):
-        list(map(lambda x: self._outputs[0][0].append(),
-                 value := list(filter(lambda x: x <= timer, self._timer_list))))
+        for _ in list(filter(lambda x: x <= timer, self._timer_list)):
+            for output in self._outputs:
+                output[0].append(output[1])
 
 
