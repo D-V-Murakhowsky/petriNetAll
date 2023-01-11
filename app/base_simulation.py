@@ -5,7 +5,6 @@ from typing import List, Tuple
 from .generator import Generator
 from .models import SortedQueue
 from .terminator import Terminator
-from collections import Counter
 
 
 class Simulation(ABC):
@@ -34,24 +33,12 @@ class Simulation(ABC):
         return self._generators
 
     @property
-    def most_common_time_moment(self):
-        return Counter(self._time_moments.values).most_common(1)[0][1]
-
-    @property
     def places(self):
         return self._places
 
     @property
     def stocks(self):
         return self._stocks
-
-    @property
-    def time_moments(self):
-        return self._time_moments
-
-    @property
-    def total_load(self):
-        return sum(place.load for place in self._places)
 
     @property
     def transitions(self):
@@ -114,8 +101,6 @@ class Simulation(ABC):
             for generator in self._generators:
                 generator.process(timer=timer)
 
-            pass
-
             for transition in self.transitions:
                 times = list(filter(lambda x: self._max_time >= x > timer, transition.process(timer=timer)))
                 self._time_moments.check_update(times)
@@ -124,19 +109,11 @@ class Simulation(ABC):
 
         print(f'Simulation time = {self._max_time}')
         print(f'Total entities arrived: {sum([generator.total_elements for generator in self._generators])}')
-        print(f'Total entities processed: {sum([stock.load for stock in self._stocks])}')
         for stock in self._stocks:
             print(f'{stock.str_id}: {stock.load}')
 
     def _create_model(self):
         pass
-
-    def _describe_step(self):
-        for place in self._places:
-            print(place)
-        for stock in self._stocks:
-            print(stock)
-        print(f'Model total load is {self.total_load}')
 
     def _sort_transitions(self):
         self._transitions = sorted(self._transitions, key=lambda x: x.priority)

@@ -33,6 +33,7 @@ class Generator(Element):
             timer += self._min_generation_time \
                 if (self._min_generation_time == self._max_generation_time) else\
                 randint(self._min_generation_time, self._max_generation_time)
+        self._total_generation = len(self._timer_list)
         return self._timer_list
 
     def process(self, timer: int):
