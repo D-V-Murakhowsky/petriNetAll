@@ -82,7 +82,7 @@ class Transition(Element):
         """
         transition_quantity = len(list(filter(lambda x: x == timer, self._storage)))
         for output in self._outputs:
-            output[0].append(transition_quantity)
+            output[0].append(transition_quantity * output[1])
 
     def _generate_fin_time(self, timer: int) -> float:
         """

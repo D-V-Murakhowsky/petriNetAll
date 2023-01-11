@@ -4,6 +4,7 @@ from unittest import TestCase
 from app.base_simulation import Simulation
 from app.place import Place
 from app.transition import Transition
+from app.conditional_transition import ConditionalTransition
 
 
 class FullSimulation(Simulation):
@@ -26,7 +27,9 @@ class FullSimulation(Simulation):
         self._transitions.extend([
             Transition(distribution_type='const', parent=self, str_id='Arrival->Successful', priority=3),
             Transition(distribution_type='const', parent=self, str_id='Arrival->Unsuccessful', priority=4),
-            Transition(distribution_type='const', parent=self, str_id='Control->Request_completed', priority=1),
+            ConditionalTransition(distribution_type='const', parent=self, str_id='Control->Request_completed',
+                                  priority=1, place='Stock_qty',
+                                  condition=lambda x: x <= 3),
             Transition(distribution_type='const', parent=self, str_id='Request_completed->Request_complected',
                        priority=5),
             Transition(distribution_type='const', parent=self, str_id='Delivery',
@@ -44,6 +47,7 @@ class FullSimulation(Simulation):
             ('Generator', 'Check_stock', 1),
             ('Check_stock', 'Control->Request_completed', 1),
             ('Check_stock', 'Control->NormalStock', 1),
+            ('Control->NormalStock', 'NormalStock', 1),
             ('Control->Request_completed', 'Request_completed', 1),
             ('Request_completed', 'Request_completed->Request_complected', 1),
             ('Request_completed->Request_complected', 'Request_complected', 1),

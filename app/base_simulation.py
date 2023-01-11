@@ -57,12 +57,12 @@ class Simulation(ABC):
             self._set_arc(arc_in, arc_out, multiplicity)
 
     def _set_arc(self, start: str, fin: str, multiplicity: int):
-        start_element = self._get_element_by_id(start)
-        fin_element = self._get_element_by_id(fin)
+        start_element = self.get_element_by_id(start)
+        fin_element = self.get_element_by_id(fin)
         start_element.add_output(fin_element, multiplicity)
         fin_element.add_input(start_element, multiplicity)
 
-    def _get_element_by_id(self, str_id: str):
+    def get_element_by_id(self, str_id: str):
         if str_id == 'Generator':
             return self._generators[0]
         elif str_id == 'Terminator':
