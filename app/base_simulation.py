@@ -101,6 +101,8 @@ class Simulation(ABC):
     def run(self):
         logging.debug('Simulation has started')
 
+        self._sort_transitions()
+
         for generator in self._generators:
             self._time_moments.check_update(generator.generate_tokens())
 
@@ -132,3 +134,6 @@ class Simulation(ABC):
         for stock in self._stocks:
             print(stock)
         print(f'Model total load is {self.total_load}')
+
+    def _sort_transitions(self):
+        self._transitions = sorted(self._transitions, key=lambda x: x.priority)

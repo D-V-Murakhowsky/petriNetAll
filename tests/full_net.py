@@ -41,6 +41,15 @@ class FullSimulation(Simulation):
             ('Arrival', 'Arrival->Unsuccessful', 1),
             ('Arrival->Successful', 'Successful', 1),
             ('Arrival->Unsuccessful', 'Unsuccessful', 1),
+            ('Generator', 'Check_stock', 1),
+            ('Check_stock', 'Control->Request_completed', 1),
+            ('Check_stock', 'Control->NormalStock', 1),
+            ('Control->Request_completed', 'Request_completed', 1),
+            ('Request_completed', 'Request_completed->Request_complected', 1),
+            ('Request_completed->Request_complected', 'Request_complected', 1),
+            ('Request_complected', 'Delivery', 1),
+            ('Delivery', 'StockReplenished', 1),
+            ('Delivery', 'Stock_qty', 17)
         ])
 
 
