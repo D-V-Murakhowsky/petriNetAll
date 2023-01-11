@@ -33,6 +33,11 @@ class Transition(Element):
 
         self._random_generator = default_rng()
         self._storage = []
+        self._priority = priority
+
+    @property
+    def priority(self):
+        return self._priority
 
     def __repr__(self):
         return f'Transition: {self._id}, type={self._dist_type}, load={self.load}'
