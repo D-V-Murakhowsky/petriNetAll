@@ -2,6 +2,8 @@ import logging
 from abc import ABC
 from typing import List, Tuple
 
+import numpy as np
+
 from .generator import Generator
 from .models import SortedQueue
 from .terminator import Terminator
@@ -86,33 +88,57 @@ class Simulation(ABC):
                             raise ValueError(f'Element {str_id} not found')
 
     def run(self):
-        logging.debug('Simulation has started')
+        logging.info('Simulation has started')
+        counter = 1
 
         self._sort_transitions()
 
         for generator in self._generators:
-            self._time_moments.check_update(generator.generate_tokens())
+            arrivals = generator.generate_tokens()
+            self._time_moments.check_update(arrivals)
+
+        moments = np.array(self._time_moments.values)
+        delta_moments = moments[1:] - moments[:-1]
 
         timer = self._time_moments.get()
 
-        while not self._time_moments.is_empty:
+        while True:
             logging.debug(f'Time = {timer}')
 
             for generator in self._generators:
                 generator.process(timer=timer)
 
             for transition in self.transitions:
-                times = list(filter(lambda x: self._max_time >= x > timer, transition.process(timer=timer)))
-                self._time_moments.check_update(times)
+                self._time_moments.check_update(times := transition.process(timer=timer))
 
-            timer = self._time_moments.get()
+            self._state_monitoring(timer)
 
-        print(f'Simulation time = {self._max_time}')
+            logging.info(f'Step {counter}')
+            logging.info(f'Simulation time = {timer}')
+            logging.info(f'Total entities arrived: {sum([generator.total_elements for generator in self._generators])}')
+            for stock in self._stocks:
+                logging.info(f'{stock.str_id}: {stock.load}')
+
+            if not self._time_moments.is_empty:
+                timer = self._time_moments.get()
+                counter += 1
+            else:
+                break
+
+        print(f'Total simulation time = {timer}')
         print(f'Total entities arrived: {sum([generator.total_elements for generator in self._generators])}')
+        print(f'Arrival time: min={np.min(delta_moments)}, max={np.max(delta_moments)}')
         for stock in self._stocks:
             print(f'{stock.str_id}: {stock.load}')
+        self._show_monitoring()
 
     def _create_model(self):
+        pass
+
+    def _state_monitoring(self, timer: int):
+        pass
+
+    def _show_monitoring(self):
         pass
 
     def _sort_transitions(self):

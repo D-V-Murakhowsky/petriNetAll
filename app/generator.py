@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Tuple
 from .models import Element
 
 if TYPE_CHECKING:
-    from .base_simulation import Simulation
+    from .simulation import Simulation
 
 import numpy as np
 from random import randint
@@ -11,7 +11,7 @@ from random import randint
 
 class Generator(Element):
 
-    def __init__(self, simulation_time: int, parent: "Simulation", str_id: str, intergeneration_time: Tuple):
+    def __init__(self, simulation_time: int, parent: "Simulation", str_id: str, intergeneration_time: Tuple = (1, 1)):
         super().__init__(capacity=np.inf, parent=parent, str_id=str_id)
         self._max_time = simulation_time
         self._total_generation = 0
@@ -37,8 +37,9 @@ class Generator(Element):
         return self._timer_list
 
     def process(self, timer: int):
-        for _ in list(filter(lambda x: x <= timer, self._timer_list)):
-            for output in self._outputs:
-                output[0].append(output[1])
+        if timer in self._timer_list:
+            for _ in list(filter(lambda x: x <= timer, self._timer_list)):
+                for output in self._outputs:
+                    output[0].append(output[1])
 
 

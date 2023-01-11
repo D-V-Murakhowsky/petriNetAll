@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, List
 
 from .models import Element
 if TYPE_CHECKING:
-    from .base_simulation import Simulation
+    from .simulation import Simulation
 
 import numpy as np
 
