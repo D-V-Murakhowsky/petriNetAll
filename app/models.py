@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sortedcontainers import SortedList
 
 if TYPE_CHECKING:
-    from .base_simulation import Simulation
+    from .simulation import Simulation
 
 import numpy as np
 
@@ -57,8 +57,7 @@ class SortedQueue:
 
 class Element(ABC):
 
-    def __init__(self, parent: "Simulation", capacity: int = np.inf, str_id: str = ''):
-        self._capacity = capacity
+    def __init__(self, parent: "Simulation", str_id: str = '', save_stats: bool = False):
         self._parent = parent
         self._id = str_id
 
@@ -66,6 +65,8 @@ class Element(ABC):
         self._outputs = []
 
         self._load = 0
+
+        self._save_stats = save_stats
 
     @property
     def is_full(self):
@@ -86,6 +87,12 @@ class Element(ABC):
         self._outputs.append((element, multiplicity))
 
     def process(self, timer: int):
+        pass
+
+    def _save_statistics(self, timer: int):
+        pass
+
+    def get_statistics(self):
         pass
 
 

@@ -97,9 +97,6 @@ class Simulation(ABC):
             arrivals = generator.generate_tokens()
             self._time_moments.check_update(arrivals)
 
-        moments = np.array(self._time_moments.values)
-        delta_moments = moments[1:] - moments[:-1]
-
         timer = self._time_moments.get()
 
         while True:
@@ -127,10 +124,6 @@ class Simulation(ABC):
 
         print(f'Total simulation time = {timer}')
         print(f'Total entities arrived: {sum([generator.total_arrivals for generator in self._generators])}')
-        print(f'Arrival time: min={np.min(delta_moments)}, max={np.max(delta_moments)}')
-        for stock in self._stocks:
-            print(f'{stock.str_id}: {stock.load}')
-        self._show_monitoring()
 
     def _create_model(self):
         pass

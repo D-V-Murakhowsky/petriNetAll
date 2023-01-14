@@ -1,8 +1,11 @@
-from .models import Element
 from typing import Literal, NoReturn
 from typing import TYPE_CHECKING
-from numpy.random import default_rng
+
+import numpy as np
 from numpy import ceil
+from numpy.random import default_rng
+
+from .models import Element
 
 if TYPE_CHECKING:
     from .simulation import Simulation
@@ -12,7 +15,7 @@ class Transition(Element):
 
     def __init__(self, distribution_type: Literal['const', 'norm', 'exp', 'uni', 'func'],
                  parent: "Simulation", str_id: str, priority: int = 1000, **kwargs):
-        super().__init__(capacity=1, str_id=str_id, parent=parent)
+        super().__init__(str_id=str_id, parent=parent)
         self._dist_type = distribution_type
         match distribution_type:
             case 'const':
@@ -56,6 +59,9 @@ class Transition(Element):
 
     def __repr__(self):
         return f'Transition: {self._id}, type={self._dist_type}, load={self.load}'
+
+    def get_statistics(self):
+        return np.array(self._releases) - np.array(self._holds)
 
     def process(self, timer: int):
         """
