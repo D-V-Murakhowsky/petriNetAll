@@ -18,9 +18,15 @@ class Generator(Element):
         self._min_generation_time, self._max_generation_time = intergeneration_time
         self._timer_list = []
         self._parent = parent
+        self._arrival_counter = 0
+        self._process_log = []
 
     def __repr__(self):
         return f'{self._id}'
+
+    @property
+    def total_arrivals(self):
+        return self._arrival_counter
 
     @property
     def total_elements(self):
@@ -41,5 +47,8 @@ class Generator(Element):
             for _ in list(filter(lambda x: x <= timer, self._timer_list)):
                 for output in self._outputs:
                     output[0].append(output[1])
+                    self._arrival_counter += output[1]
+                    self._process_log.append((timer, self._arrival_counter))
+            self._timer_list = list(filter(lambda x: x > timer, self._timer_list))
 
 

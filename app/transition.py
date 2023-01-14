@@ -28,6 +28,8 @@ class Transition(Element):
             case 'uni':
                 self._loc = kwargs['loc']
                 self._scale = kwargs['scale']
+            case 'func':
+                self._func = kwargs['func']
             case '_':
                 raise ValueError('Unknown distribution type')
 

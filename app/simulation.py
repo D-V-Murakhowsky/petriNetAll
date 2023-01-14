@@ -115,7 +115,7 @@ class Simulation(ABC):
 
             logging.info(f'Step {counter}')
             logging.info(f'Simulation time = {timer}')
-            logging.info(f'Total entities arrived: {sum([generator.total_elements for generator in self._generators])}')
+            logging.info(f'Total entities arrived: {sum([generator.total_arrivals for generator in self._generators])}')
             for stock in self._stocks:
                 logging.info(f'{stock.str_id}: {stock.load}')
 
@@ -126,7 +126,7 @@ class Simulation(ABC):
                 break
 
         print(f'Total simulation time = {timer}')
-        print(f'Total entities arrived: {sum([generator.total_elements for generator in self._generators])}')
+        print(f'Total entities arrived: {sum([generator.total_arrivals for generator in self._generators])}')
         print(f'Arrival time: min={np.min(delta_moments)}, max={np.max(delta_moments)}')
         for stock in self._stocks:
             print(f'{stock.str_id}: {stock.load}')
