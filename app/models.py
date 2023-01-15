@@ -69,12 +69,24 @@ class Element(ABC):
         self._save_stats = save_stats
 
     @property
+    def element_type(self):
+        return 'Element'
+
+    @property
     def is_full(self):
         return False
 
     @property
     def load(self):
         return self._load
+
+    @property
+    def save_stats(self):
+        return self._save_stats
+
+    @property
+    def statistics(self):
+        return None
 
     @property
     def str_id(self):
@@ -91,8 +103,4 @@ class Element(ABC):
 
     def _save_statistics(self, timer: int):
         pass
-
-    def get_statistics(self):
-        pass
-
 

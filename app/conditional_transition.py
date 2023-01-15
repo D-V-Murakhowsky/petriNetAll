@@ -18,7 +18,7 @@ class ConditionalTransition(Transition):
             if transition_quantity > 0:
                 self._holds.append(timer)
                 for _input in self._inputs:
-                    _input[0].exclude(transition_quantity)
+                    _input[0].exclude(timer, transition_quantity)
                 for _ in range(transition_quantity):
                     value = self._generate_fin_time(timer)
                     self._storage.append(value)

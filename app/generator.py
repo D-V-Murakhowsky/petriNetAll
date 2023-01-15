@@ -12,7 +12,7 @@ from random import randint
 class Generator(Element):
 
     def __init__(self, simulation_time: int, parent: "Simulation", str_id: str, intergeneration_time: Tuple = (1, 1)):
-        super().__init__(capacity=np.inf, parent=parent, str_id=str_id)
+        super().__init__(parent=parent, str_id=str_id)
         self._max_time = simulation_time
         self._total_generation = 0
         self._min_generation_time, self._max_generation_time = intergeneration_time
@@ -45,7 +45,7 @@ class Generator(Element):
         if timer in self._timer_list:
             for _ in list(filter(lambda x: x <= timer, self._timer_list)):
                 for output in self._outputs:
-                    output[0].append(output[1])
+                    output[0].append(timer, output[1])
                     self._arrival_counter += output[1]
             self._timer_list = list(filter(lambda x: x > timer, self._timer_list))
 

@@ -15,7 +15,8 @@ class Transition(Element):
 
     def __init__(self, distribution_type: Literal['const', 'norm', 'exp', 'uni', 'func'],
                  parent: "Simulation", str_id: str, priority: int = 1000, **kwargs):
-        super().__init__(str_id=str_id, parent=parent)
+        super().__init__(str_id=str_id, parent=parent,
+                         save_stats=kwargs['save_stats'] if 'save_stats' in kwargs else False)
         self._dist_type = distribution_type
         match distribution_type:
             case 'const':
@@ -41,13 +42,12 @@ class Transition(Element):
         self._priority = priority
         self._holds, self._releases = [], []
 
-    @property
-    def hold_times(self):
-        return self._holds
+    def __repr__(self):
+        return f'Transition: {self._id}, type={self._dist_type}, load={self.load}'
 
     @property
-    def release_times(self):
-        return self._releases
+    def element_type(self):
+        return 'Transition'
 
     @property
     def load(self):
@@ -57,11 +57,9 @@ class Transition(Element):
     def priority(self):
         return self._priority
 
-    def __repr__(self):
-        return f'Transition: {self._id}, type={self._dist_type}, load={self.load}'
-
-    def get_statistics(self):
-        return np.array(self._releases) - np.array(self._holds)
+    @property
+    def statistics(self):
+        return None
 
     def process(self, timer: int):
         """
@@ -74,9 +72,15 @@ class Transition(Element):
         self._filter_and_sort_storage(timer)
         return self._storage
 
+    def _check_hold_condition(self):
+        for _input in self._inputs:
+            if _input[0].load < _input[1]:
+                return False
+        return True
+
     def _filter_and_sort_storage(self, timer: int) -> NoReturn:
         """
-        Time momemts' storage cleaner
+        Time moments' storage cleaner
         :param timer: current imitation time
         :return: None
         """
@@ -89,12 +93,14 @@ class Transition(Element):
         :param timer: current imitation time
         :return: None
         """
-        if (transition_quantity := min([_input[0].load for _input in self._inputs])) > 0:
-            self._holds.append(timer)
-            for _input in self._inputs:
-                _input[0].exclude(transition_quantity)
-            for _ in range(transition_quantity):
-                self._storage.append(self._generate_fin_time(timer))
+        if self._check_hold_condition():
+            if (transition_quantity := min([int(_input[0].load / _input[1]) for _input in self._inputs])) > 0:
+                self._holds.append(timer)
+                for _input in self._inputs:
+                    _input[0].exclude(timer, transition_quantity * _input[1])
+                for _ in range(transition_quantity):
+                    self._storage.append(value := self._generate_fin_time(timer))
+                    pass
 
     def _release(self, timer: int) -> NoReturn:
         """
@@ -105,7 +111,7 @@ class Transition(Element):
         if (transition_quantity := len(list(filter(lambda x: x == timer, self._storage)))) > 0:
             self._releases.append(timer)
             for output in self._outputs:
-                output[0].append(transition_quantity * output[1])
+                output[0].append(timer, transition_quantity * output[1])
 
     def _generate_fin_time(self, timer: int) -> int:
         """
@@ -124,7 +130,7 @@ class Transition(Element):
                 return int(timer + ceil(self._random_generator.uniform(low=self._loc - self._scale,
                                                                        high=self._loc + self._scale)))
             case 'func':
-                pass
+                return int(timer + ceil(self._func()))
 
 
 

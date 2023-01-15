@@ -35,8 +35,17 @@ class Simulation(ABC):
         return self._generators
 
     @property
+    def iterate_elements(self):
+        for element in (self.places + self.transitions):
+            yield element
+
+    @property
     def places(self):
         return self._places
+
+    @property
+    def statistics(self):
+        return '; '.join(f'Place: {place.str_id}, load={place.load}' for place in self._places)
 
     @property
     def stocks(self):
@@ -106,9 +115,10 @@ class Simulation(ABC):
                 generator.process(timer=timer)
 
             for transition in self.transitions:
-                self._time_moments.check_update(times := transition.process(timer=timer))
+                self._time_moments.check_update(transition.process(timer=timer))
 
-            self._state_monitoring(timer)
+            for place in self._places:
+                place.process(timer)
 
             logging.info(f'Step {counter}')
             logging.info(f'Simulation time = {timer}')
@@ -117,22 +127,29 @@ class Simulation(ABC):
                 logging.info(f'{stock.str_id}: {stock.load}')
 
             if not self._time_moments.is_empty:
-                timer = self._time_moments.get()
-                counter += 1
+
+                if (value := self._time_moments.get()) > self._max_time:
+                    break
+                else:
+                    timer = value
+                    counter += 1
             else:
                 break
 
-        print(f'Total simulation time = {timer}')
+        print(f'Total simulation_zero time = {timer}')
         print(f'Total entities arrived: {sum([generator.total_arrivals for generator in self._generators])}')
+
+        return self._return_statistics()
 
     def _create_model(self):
         pass
 
-    def _state_monitoring(self, timer: int):
-        pass
-
-    def _show_monitoring(self):
-        pass
+    def _return_statistics(self):
+        response = {}
+        for element in self.iterate_elements:
+            if element.save_stats:
+                response.update({f'{element.element_type}_{element.str_id}': element.statistics})
+        return response
 
     def _sort_transitions(self):
         self._transitions = sorted(self._transitions, key=lambda x: x.priority)
