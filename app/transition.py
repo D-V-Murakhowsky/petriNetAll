@@ -60,11 +60,10 @@ class Transition(Element):
         :return: time moments to add in general time moments queue
         """
         value = 1 if self._probability == 1 else self._random_generator.uniform(0, 1)
-        if value <= self._probability:
-            self._hold(timer)
+        transactions_counter = self._hold(timer) if value <= self._probability else 0
         self._release(timer)
         self._filter_and_sort_storage(timer)
-        response = None if len(self._storage) == 0 else self._storage
+        response = None if ((len(self._storage) == 0) | (transactions_counter == 0)) else self._storage
         self._storage = list(filter(lambda x: x != timer, self._storage))
         return response
 
@@ -83,12 +82,13 @@ class Transition(Element):
         if len(self._storage) > 0:
             self._storage = sorted(list(filter(lambda x: x >= timer, self._storage)))
 
-    def _hold(self, timer: float) -> NoReturn:
+    def _hold(self, timer: float) ->int:
         """
         Gets markers from inputs
         :param timer: current imitation time
-        :return: None
+        :return: number of made transactions
         """
+        transactions_counter: int = 0
         if self._check_hold_condition():
             transition_quantity = min([int(_input[0].load / _input[1]) for _input in self._inputs])
             transition_quantity = min(transition_quantity, 1) if self._is_conflict else transition_quantity
@@ -98,6 +98,8 @@ class Transition(Element):
                     _input[0].exclude(timer, transition_quantity * _input[1])
                 for _ in range(transition_quantity):
                     self._storage.append(self._time_distro.get_value() + timer)
+                    transactions_counter += 1
+        return transactions_counter
 
     def _release(self, timer: float) -> NoReturn:
         """
