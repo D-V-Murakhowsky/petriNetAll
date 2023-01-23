@@ -1,6 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import NoReturn, Any, Iterable, Literal, Dict
+from typing import NoReturn, Any, Iterable, Literal, Dict, List, Union
 from typing import TYPE_CHECKING
 
 from dacite import from_dict
@@ -23,6 +23,9 @@ class Distribution:
     type_of_distribution: Literal['const', 'uniform', 'norm', 'exp']
     loc: float = 1
     scale: float = 1
+
+    def __repr__(self):
+        return f"Distribution law: {self.type_of_distribution}, parameters: loc={self.loc}, scale={self.scale}"
 
     @staticmethod
     def from_dict(data: Dict) -> "Distribution":
@@ -60,8 +63,8 @@ class SortedQueue:
     Включає методи, яки дозволяють уникати дублікатів при додаванні
     """
 
-    def __init__(self):
-        self._list: SortedList = SortedList()
+    def __init__(self, iterable: Iterable):
+        self._list: SortedList = SortedList(iterable=iterable)
 
     def __len__(self):
         return len(self._list)
@@ -188,7 +191,7 @@ class Element(ABC):
         """
         self._outputs.append((element, multiplicity))
 
-    def process(self, timer: int):
+    def process(self, timer: int) -> Union[List, None]:
         """
         Виконання дій у визначений елемент модельного часу
         :param timer: момент модельного часу

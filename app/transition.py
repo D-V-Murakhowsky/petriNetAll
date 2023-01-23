@@ -1,22 +1,21 @@
-from typing import NoReturn
+from typing import NoReturn, Union, Dict
 from typing import TYPE_CHECKING
 
 from numpy.random import default_rng
 
-from .models import Element
+from .models import Element, Distribution
 
 if TYPE_CHECKING:
     from .simulation import Simulation
-    from .models import Distribution
 
 
 class Transition(Element):
 
-    def __init__(self, time_distro: "Distribution",
+    def __init__(self, time_distro: Union["Distribution", Dict],
                  parent: "Simulation", str_id: str, priority: int = 1000, **kwargs):
         super().__init__(str_id=str_id, parent=parent,
                          save_stats=kwargs['save_stats'] if 'save_stats' in kwargs else False)
-        self._time_distro = time_distro
+        self._time_distro = Distribution.from_dict(time_distro) if isinstance(time_distro, dict) else time_distro
         self._random_generator = default_rng()
         self._storage = []
         self._priority = priority
