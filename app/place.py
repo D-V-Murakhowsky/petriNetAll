@@ -12,7 +12,7 @@ class Place(Element):
 
     _num_id = 0
 
-    def __init__(self, parent: "Simulation", capacity: int = 1, str_id: str = '', initial_load: int = 0,
+    def __init__(self, parent: "Simulation", capacity: int = np.inf, str_id: str = '', initial_load: int = 0,
                  stats: bool = False):
         super().__init__(parent, str_id, stats)
 

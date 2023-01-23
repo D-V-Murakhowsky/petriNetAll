@@ -1,9 +1,10 @@
 from typing import NoReturn, Union, Dict, List
 from typing import TYPE_CHECKING
 
+import numpy as np
 from numpy.random import default_rng
 
-from .models import Element, Distribution
+from app.models import Element, Distribution
 
 if TYPE_CHECKING:
     from .simulation import Simulation
@@ -20,13 +21,25 @@ class Transition(Element):
         self._storage = []
         self._priority = priority
         self._holds, self._releases = [], []
+        self._probability = kwargs['prob'] if 'prob' in kwargs else 1
+        self._capacity = kwargs['capacity'] if 'capacity' in kwargs else np.inf
+        self._is_conflict: bool = False
 
     def __repr__(self):
-        return f'Transition: {self._id}, type={self._time_distro.type_of_distribution}, load={self.load}'
+        return f'Transition: {self._id}, type={self._time_distro.type_of_distribution}, load={self.load},' \
+               f' {"is conflict" if self._is_conflict else ""}'
 
     @property
     def element_type(self):
         return 'Transition'
+
+    @property
+    def is_conflict(self):
+        return self._is_conflict
+
+    @is_conflict.setter
+    def is_conflict(self, value):
+        self._is_conflict = value
 
     @property
     def load(self):
@@ -46,10 +59,14 @@ class Transition(Element):
         :param timer: current imitation time
         :return: time moments to add in general time moments queue
         """
-        self._hold(timer)
+        value = 1 if self._probability == 1 else self._random_generator.uniform(0, 1)
+        if value <= self._probability:
+            self._hold(timer)
+        else:
+            pass
         self._release(timer)
         self._filter_and_sort_storage(timer)
-        return self._storage
+        return None if len(self._storage) == 0 else self._storage
 
     def _check_hold_condition(self):
         for _input in self._inputs:
@@ -73,7 +90,9 @@ class Transition(Element):
         :return: None
         """
         if self._check_hold_condition():
-            if (transition_quantity := min([int(_input[0].load / _input[1]) for _input in self._inputs])) > 0:
+            transition_quantity = min([int(_input[0].load / _input[1]) for _input in self._inputs])
+            transition_quantity = min(transition_quantity, 1) if self._is_conflict else transition_quantity
+            if transition_quantity > 0:
                 self._holds.append(timer)
                 for _input in self._inputs:
                     _input[0].exclude(timer, transition_quantity * _input[1])
