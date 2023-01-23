@@ -142,8 +142,7 @@ class TestFullSimulation(TestCase):
                 "small_load": small_load, "big_load": big_load}
 
     def test_one_simulation(self):
-        simulation_zero = FullSimulation_Zero(max_time=10000, intergeneration_time=(1, 1),
-                                              containers_per_minute=2, small_full_load=100)
+        simulation_zero = FullSimulation_One(max_time=16000, intergeneration_time=(1, 1), small_full_load=100)
         print(self.process_response(simulation_zero.run(), simulation_zero._max_time))
 
     def test_run_zero_simulation(self):
@@ -160,29 +159,29 @@ class TestFullSimulation(TestCase):
 
         data_0, data_1 = [], []
 
-        for time in range(6000, 22000, 2000):
+        for load in range(40, 140, 10):
             for trial_n in range(2):
-                simulation_0 = FullSimulation_Zero(max_time=time, intergeneration_time=(1, 1),
-                                                   containers_per_minute=3)
-                simulation_1 = FullSimulation_One(max_time=time, intergeneration_time=(1, 1),
-                                                  containers_per_minute=3)
+                simulation_0 = FullSimulation_Zero(max_time=16000, intergeneration_time=(1, 1),
+                                                   small_full_load=load)
+                simulation_1 = FullSimulation_One(max_time=16000, intergeneration_time=(1, 1),
+                                                  small_full_load=load)
 
                 response_0 = self.process_response(simulation_0.run(), simulation_0._max_time)
                 response_1 = self.process_response(simulation_1.run(), simulation_1._max_time)
 
-                data_0.append({'time': time, 'trial_n': trial_n,
+                data_0.append({'load': load, 'trial_n': trial_n,
                                'process_time_mean': response_0['process_mean'],
                                'process_time_std': response_0['process_std'],
                                'small_load': response_0['small_load'],
                                'big_load': response_0['big_load']})
 
-                data_1.append({'time': time, 'trial_n': trial_n,
+                data_1.append({'load': load, 'trial_n': trial_n,
                                'process_time_mean': response_1['process_mean'],
                                'process_time_std': response_1['process_std'],
                                'small_load': response_1['small_load'],
                                'big_load': response_1['big_load']})
 
-        with open('../sim_result_time3_0.pickle', 'wb') as f:
+        with open('../sim_result_load_0.pickle', 'wb') as f:
             pickle.dump(data_0, f)
-        with open('../sim_result_time3_1.pickle', 'wb') as f:
+        with open('../sim_result_load_1.pickle', 'wb') as f:
             pickle.dump(data_1, f)

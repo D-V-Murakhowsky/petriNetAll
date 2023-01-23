@@ -6,29 +6,21 @@ import numpy as np
 
 from .generator import Generator
 from .models import SortedQueue
-from .terminator import Terminator
 
 
 class Simulation(ABC):
 
-    def __init__(self, max_time: int, default_generator: bool = True, default_stock: bool = True,
-                 intergeneration_time: Tuple[int, int] = (1, 1)):
+    def __init__(self, max_time: int, default_generator: bool = True):
         self._max_time = max_time
         self._time_moments = SortedQueue()
 
         if default_generator:
-            self._generators = [Generator(simulation_time=max_time, parent=self, str_id='Generator',
-                                          intergeneration_time=intergeneration_time)]
+            self._generators = [Generator(simulation_time=max_time, parent=self, str_id='Generator')]
         else:
             self._generators = []
 
         self._places = []
         self._transitions = []
-
-        if default_stock:
-            self._stocks = [Terminator(parent=self, str_id='Terminator')]
-        else:
-            self._stocks = []
 
     @property
     def generators(self):
@@ -106,7 +98,7 @@ class Simulation(ABC):
             arrivals = generator.generate_tokens()
             self._time_moments.check_update(arrivals)
 
-        timer = self._time_moments.get()
+        timer = self._time_moments.pop()
 
         while True:
             logging.debug(f'Time = {timer}')
@@ -128,7 +120,7 @@ class Simulation(ABC):
 
             if not self._time_moments.is_empty:
 
-                if (value := self._time_moments.get()) > self._max_time:
+                if (value := self._time_moments.pop()) > self._max_time:
                     break
                 else:
                     timer = value

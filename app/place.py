@@ -52,7 +52,7 @@ class Place(Element):
             for _ in range(num):
                 self._statistics['exclude'] = np.append(self._statistics['exclude'], timer)
 
-    def append(self, timer: int, num: int = 1):
+    def append(self, timer: float, num: int = 1):
         if self._load < self._capacity:
             self._load += num
             if self._operate_as_queue:
