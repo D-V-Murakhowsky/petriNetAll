@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -23,9 +23,9 @@ class Place(Element):
             self._load = initial_load
 
         self._capacity = capacity
-        self._statistics = {'current_load': np.array([]),
+        self._statistics = {'load': np.array([]),
                             'append': np.array([]),
-                            'exclude': np.array([])}
+                            'exclude': np.array([])} if stats is True else None
 
     def __repr__(self):
         return f'Place: {self._id}, capacity={self._capacity}, load={self.load}'
@@ -39,15 +39,25 @@ class Place(Element):
         return self.load == self._capacity
 
     @property
+    def load(self):
+        return self._load
+
+    @property
     def statistics(self):
         return self._statistics
 
     def exclude(self, timer: int, num: int = 1):
         self._load -= num
+        if self._load < 0:
+            raise RuntimeError(f'Place {self.str_id} has negative load')
+        if self._statistics is not None:
+            self._save_statistics(cell='exclude', value=num, timer=timer)
 
     def append(self, timer: float, num: int = 1):
         if self._load < self._capacity:
             self._load += num
+            if self._statistics is not None:
+                self._save_statistics(cell='append', value=num, timer=timer)
         else:
             return False
 
@@ -55,15 +65,15 @@ class Place(Element):
         return self._statistics
 
     def process(self, timer: int):
-        if self._stats:
-            self._save_statistics(timer)
+        if self._statistics is not None:
+            self._save_statistics(cell='load', value=self.load, timer=timer)
 
-    def _save_statistics(self, timer: int):
-        if self._statistics['current_load'].size == 0:
-            self._statistics['current_load'] = np.array([timer, self.load]).reshape(1, -1)
+    def _save_statistics(self, cell: str, value: Union[int, float], timer: float):
+        if self._statistics[cell].size == 0:
+            self._statistics[cell] = np.array([timer, value]).reshape(1, -1)
         else:
-            self._statistics['current_load'] = np.append(self._statistics['current_load'],
-                                                         np.array([timer, self.load]).reshape(1, -1),
-                                                         axis=0)
+            self._statistics[cell] = np.append(self._statistics[cell],
+                                               np.array([timer, value]).reshape(1, -1),
+                                               axis=0)
 
 

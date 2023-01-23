@@ -98,8 +98,9 @@ class SortedQueue:
         :param list_of_values: список значень
         :return: None
         """
-        list_of_values = list(filter(lambda x: x not in self._list, list_of_values))
-        self.update(set(list_of_values))
+        if list_of_values is not None:
+            list_of_values = list(filter(lambda x: x not in self._list, list_of_values))
+            self.update(set(list_of_values))
 
     def insert(self, value: Any) -> NoReturn:
         """
@@ -147,8 +148,8 @@ class Element(ABC):
         self._parent = parent
         self._id = str_id
 
-        self._inputs = []
-        self._outputs = []
+        self._inputs: Union[List[Element], None] = None
+        self._outputs: Union[List[Element], None] = None
 
         self._load = 0
         self._stats = [] if save_stats else None
@@ -160,10 +161,6 @@ class Element(ABC):
     @property
     def save_stats(self):
         return self._stats is not None
-
-    @property
-    def str_id(self):
-        return self._id
 
     @property
     def statistics(self):
@@ -180,7 +177,10 @@ class Element(ABC):
         :param multiplicity: кількість зв'язків (дуг)
         :return: None
         """
-        self._inputs.append((element, multiplicity))
+        if self._inputs is not None:
+            self._inputs.append((element, multiplicity))
+        else:
+            self._inputs = [(element, multiplicity)]
 
     def add_output(self, element: "Element", multiplicity: int):
         """
@@ -189,7 +189,10 @@ class Element(ABC):
         :param multiplicity: кількість зв'язків (дуг)
         :return: None
         """
-        self._outputs.append((element, multiplicity))
+        if self._outputs is not None:
+            self._outputs.append((element, multiplicity))
+        else:
+            self._outputs = [(element, multiplicity)]
 
     def process(self, timer: int) -> Union[List, None]:
         """
@@ -199,9 +202,10 @@ class Element(ABC):
         """
         pass
 
-    def _save_statistics(self, timer: int):
+    def _save_statistics(self, cell: str, value: Union[int, float], timer: int):
         """
         Збереження статистики
+        :param cell: комірка зберігання
         :param timer: момент модельного часу
         :return:
         """

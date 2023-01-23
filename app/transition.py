@@ -1,4 +1,4 @@
-from typing import NoReturn, Union, Dict
+from typing import NoReturn, Union, Dict, List
 from typing import TYPE_CHECKING
 
 from numpy.random import default_rng
@@ -40,7 +40,7 @@ class Transition(Element):
     def statistics(self):
         return None
 
-    def process(self, timer: int):
+    def process(self, timer: float) -> List[float]:
         """
         Main method
         :param timer: current imitation time
@@ -57,7 +57,7 @@ class Transition(Element):
                 return False
         return True
 
-    def _filter_and_sort_storage(self, timer: int) -> NoReturn:
+    def _filter_and_sort_storage(self, timer: float) -> NoReturn:
         """
         Time moments' storage cleaner
         :param timer: current imitation time
@@ -78,9 +78,9 @@ class Transition(Element):
                 for _input in self._inputs:
                     _input[0].exclude(timer, transition_quantity * _input[1])
                 for _ in range(transition_quantity):
-                    self._storage.append(self._time_distro.get_value + timer)
+                    self._storage.append(self._time_distro.get_value() + timer)
 
-    def _release(self, timer: int) -> NoReturn:
+    def _release(self, timer: float) -> NoReturn:
         """
         Put markers in the outputs
         :param timer: current imitation time

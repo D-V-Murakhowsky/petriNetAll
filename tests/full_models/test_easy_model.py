@@ -15,10 +15,11 @@ TRANSITIONS = [{'str_id': 'prob_06', 'prob': 0.6, "stats": True, 'priority': 1,
                 'time_distro': {'type_of_distribution': 'uniform',
                                 'loc': 3, 'scale': 2}}]
 
-ARCS = [('Arrival', 'prob_06', 1),
+ARCS = [('Generator', 'Arrival', 1),
+        ('Arrival', 'prob_06', 2),
         ('Arrival', 'prob_04', 1),
         ('prob_06', 'Exit', 1),
-        ('prob_04', 'Exit', 1)]
+        ('prob_04', 'Exit', 2)]
 
 
 class EasySimulation(TestCase):

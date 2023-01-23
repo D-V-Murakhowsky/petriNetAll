@@ -15,8 +15,6 @@ class Generator(Element):
     def __init__(self, parent: "Simulation", time_distro: Union["Distribution", Dict],
                  n_per_arrival: int = 1, first_arrival: float = 0):
         super().__init__(parent)
-        self._input = None
-        self._output: Union[Place, None] = None
         self._n_per_arrival = n_per_arrival
         self._next_arrival = first_arrival
         self._distro = Distribution.from_dict(time_distro) if isinstance(time_distro, dict) else time_distro
@@ -28,6 +26,10 @@ class Generator(Element):
     @property
     def total_arrivals(self):
         return self._stats
+
+    @property
+    def _output(self):
+        return self._outputs[0][0] if self._outputs is not None else None
 
     @staticmethod
     def get_generator(parent: "Simulation", setup_data: dict):
@@ -53,13 +55,4 @@ class Generator(Element):
             return [self._next_arrival]
         else:
             return None
-
-    def set_output(self, place: "Place") -> NoReturn:
-        """
-        Поєднання виходу із входом наступного елемента
-        :param place: наступний елемент
-        :return:
-        """
-        self._output = place
-
 
