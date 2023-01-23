@@ -1,7 +1,11 @@
+from typing import TYPE_CHECKING
+
 from numpy.random import default_rng
-from .models import Distribution
 
 from . import SEED
+
+if TYPE_CHECKING:
+    from .models import Distribution
 
 
 class _TimeGenerator:
@@ -9,7 +13,7 @@ class _TimeGenerator:
     _np_generator = default_rng() if SEED == -1 else default_rng(SEED)
 
     @classmethod
-    def generate_time(cls, distro: Distribution):
+    def generate_time(cls, distro: "Distribution"):
         match distro.type_of_distribution:
             case 'const':
                 return distro.loc

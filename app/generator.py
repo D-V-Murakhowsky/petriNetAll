@@ -1,12 +1,10 @@
 from typing import TYPE_CHECKING, NoReturn, Union
 
-from .models import Element
+from .models import Element, Distribution
 
 if TYPE_CHECKING:
     from .simulation import Simulation
     from .place import Place
-
-from .models import Distribution
 
 
 class Generator(Element):
@@ -23,7 +21,7 @@ class Generator(Element):
         self._distro = time_distro
 
     @staticmethod
-    def get_generator(parent: Simulation, setup_data: dict):
+    def get_generator(parent: "Simulation", setup_data: dict):
         """
         Фабрика, що вертає генератор, створений з переданими параметрами
         :param parent: екземпляр симуляції, до якого належить генератор
@@ -46,7 +44,7 @@ class Generator(Element):
         else:
             return None
 
-    def set_output(self, place: Place) -> NoReturn:
+    def set_output(self, place: "Place") -> NoReturn:
         """
         Поєднання виходу із входом наступного елемента
         :param place: наступний елемент

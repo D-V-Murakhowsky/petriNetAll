@@ -1,33 +1,27 @@
 import logging
 from abc import ABC
-from typing import List, Tuple
-
-import numpy as np
+from typing import List, Tuple, Dict
 
 from .generator import Generator
 from .models import SortedQueue
+from .place import Place
+from .transition import Transition
 
 
 class Simulation(ABC):
 
-    def __init__(self, max_time: int, default_generator: bool = True):
-        self._max_time = max_time
+    def __init__(self, max_time: int, generator: Dict, places: List[Dict], transitions: List[Dict], arcs: List[Tuple]):
+        self._max_time: float = max_time
         self._time_moments = SortedQueue()
-
-        if default_generator:
-            self._generators = [Generator(simulation_time=max_time, parent=self, str_id='Generator')]
-        else:
-            self._generators = []
-
-        self._places = []
-        self._transitions = []
+        self._generator, self._places, self._transitions = self._create_elements(generator, places, transitions)
+        self._set_connections(arcs)
 
     @property
-    def generators(self):
-        return self._generators
+    def generator(self):
+        return self._generator
 
     @property
-    def iterate_elements(self):
+    def elements(self):
         for element in (self.places + self.transitions):
             yield element
 
@@ -40,22 +34,10 @@ class Simulation(ABC):
         return '; '.join(f'Place: {place.str_id}, load={place.load}' for place in self._places)
 
     @property
-    def stocks(self):
-        return self._stocks
-
-    @property
     def transitions(self):
         return self._transitions
 
-    def add_generators(self, names: List[str]):
-        for name in names:
-            self._generators.append(Generator(simulation_time=self._max_time, parent=self, str_id=name))
-
-    def add_stocks(self, names: List[str]):
-        for name in names:
-            self._stocks.append(Terminator(parent=self, str_id=name))
-
-    def set_arcs(self, list_of_arcs: List[Tuple[str, str, int]]):
+    def _set_connections(self, list_of_arcs: List[Tuple[str, str, int]]):
         for arc_in, arc_out, multiplicity in list_of_arcs:
             self._set_arc(arc_in, arc_out, multiplicity)
 
@@ -67,26 +49,13 @@ class Simulation(ABC):
 
     def get_element_by_id(self, str_id: str):
         if str_id == 'Generator':
-            return self._generators[0]
-        elif str_id == 'Terminator':
-            return self._stocks[0]
+            return self._generator
         else:
-            element = list(filter(lambda x: x._id == str_id, self._places))
+            element = list(filter(lambda x: x.str_id == str_id, self.elements))
             if element:
                 return element[0]
             else:
-                element = list(filter(lambda x: x._id == str_id, self._transitions))
-                if element:
-                    return element[0]
-                else:
-                    if len(self._stocks) == 1:
-                        raise ValueError(f'Element {str_id} not found')
-                    else:
-                        element = list(filter(lambda x: x._id == str_id, self._stocks))
-                        if element:
-                            return element[0]
-                        else:
-                            raise ValueError(f'Element {str_id} not found')
+                raise ValueError(f'Element {str_id} not found')
 
     def run(self):
         logging.info('Simulation has started')
@@ -95,7 +64,7 @@ class Simulation(ABC):
         self._sort_transitions()
 
         for generator in self._generators:
-            arrivals = generator.generate_tokens()
+            arrivals = self.generator.generate_tokens()
             self._time_moments.check_update(arrivals)
 
         timer = self._time_moments.pop()
@@ -133,12 +102,14 @@ class Simulation(ABC):
 
         return self._return_statistics()
 
-    def _create_model(self):
-        pass
+    def _create_elements(self, generator: Dict, places: List[Dict], transitions: List[Dict]) -> Tuple[Generator, List, List]:
+        return Generator(parent=self, **generator),\
+               [Place(parent=self, **value) for value in places],\
+               [Transition(parent=self, **value) for value in transitions]
 
     def _return_statistics(self):
         response = {}
-        for element in self.iterate_elements:
+        for element in self.elements:
             if element.save_stats:
                 response.update({f'{element.element_type}_{element.str_id}': element.statistics})
         return response

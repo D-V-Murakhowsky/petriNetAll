@@ -1,49 +1,29 @@
-from typing import Literal, NoReturn
+from typing import NoReturn
 from typing import TYPE_CHECKING
 
-import numpy as np
-from numpy import ceil
 from numpy.random import default_rng
 
 from .models import Element
 
 if TYPE_CHECKING:
     from .simulation import Simulation
+    from .models import Distribution
 
 
 class Transition(Element):
 
-    def __init__(self, distribution_type: Literal['const', 'norm', 'exp', 'uni', 'func'],
+    def __init__(self, time_distro: "Distribution",
                  parent: "Simulation", str_id: str, priority: int = 1000, **kwargs):
         super().__init__(str_id=str_id, parent=parent,
                          save_stats=kwargs['save_stats'] if 'save_stats' in kwargs else False)
-        self._dist_type = distribution_type
-        match distribution_type:
-            case 'const':
-                if 'loc' in kwargs:
-                    self._loc = kwargs['loc']
-                else:
-                    self._loc = 0
-            case 'norm':
-                self._scale = kwargs['scale']
-                self._loc = kwargs['loc']
-            case 'exp':
-                self._scale = kwargs['scale']
-            case 'uni':
-                self._loc = kwargs['loc']
-                self._scale = kwargs['scale']
-            case 'func':
-                self._func = kwargs['func']
-            case '_':
-                raise ValueError('Unknown distribution type')
-
+        self._time_distro = time_distro
         self._random_generator = default_rng()
         self._storage = []
         self._priority = priority
         self._holds, self._releases = [], []
 
     def __repr__(self):
-        return f'Transition: {self._id}, type={self._dist_type}, load={self.load}'
+        return f'Transition: {self._id}, type={self._time_distro.type_of_distribution}, load={self.load}'
 
     @property
     def element_type(self):
@@ -87,7 +67,7 @@ class Transition(Element):
         if len(self._storage) > 0:
             self._storage = sorted(list(filter(lambda x: x > timer, self._storage)))
 
-    def _hold(self, timer: int) -> NoReturn:
+    def _hold(self, timer: float) -> NoReturn:
         """
         Gets markers from inputs
         :param timer: current imitation time
@@ -99,8 +79,7 @@ class Transition(Element):
                 for _input in self._inputs:
                     _input[0].exclude(timer, transition_quantity * _input[1])
                 for _ in range(transition_quantity):
-                    self._storage.append(value := self._generate_fin_time(timer))
-                    pass
+                    self._storage.append(self._time_distro.get_value + timer)
 
     def _release(self, timer: int) -> NoReturn:
         """
@@ -112,25 +91,6 @@ class Transition(Element):
             self._releases.append(timer)
             for output in self._outputs:
                 output[0].append(timer, transition_quantity * output[1])
-
-    def _generate_fin_time(self, timer: int) -> int:
-        """
-        Generates final procession time for a marker
-        :param timer: current imitation time
-        :return: time moment
-        """
-        match self._dist_type:
-            case 'const':
-                return int(timer + self._loc)
-            case 'norm':
-                return int(timer + ceil(self._random_generator.normal(loc=self._loc, scale=self._scale)))
-            case 'exp':
-                return int(timer + ceil(self._random_generator.exponential(scale=self._scale)))
-            case 'uni':
-                return int(timer + ceil(self._random_generator.uniform(low=self._loc - self._scale,
-                                                                       high=self._loc + self._scale)))
-            case 'func':
-                return int(timer + ceil(self._func()))
 
 
 

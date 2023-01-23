@@ -34,7 +34,7 @@ class Distribution:
         # TODO convert Dict into TypedDict
         return from_dict(Distribution, data)
 
-    def get_value(self):
+    def get_value(self) -> float:
         """
         Генерує випадкове число на підставі характеристик розподілу
         :return:
@@ -157,6 +157,10 @@ class Element(ABC):
     @property
     def save_stats(self):
         return self._stats is not None
+
+    @property
+    def str_id(self):
+        return self._id
 
     @property
     def statistics(self):
