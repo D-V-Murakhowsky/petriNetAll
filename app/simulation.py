@@ -76,12 +76,12 @@ class Simulation:
 
                         if len(moments_sequence) == 0:
                             break
-                    self._time_moments.check_update(moments_sequence)
-                    pass
+                    self._time_moments.check_update(list(filter(lambda x: x > timer, moments_sequence)))
 
                 else:
                     # виконання процесу генератора / звичайного переходу
-                    self._time_moments.check_update(element.process(timer=timer))
+                    if (values := element.process(timer=timer)) is not None:
+                        self._time_moments.check_update(list(filter(lambda x: x > timer, values)))
                     pass
 
             for place in self._places:

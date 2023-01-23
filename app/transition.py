@@ -62,11 +62,11 @@ class Transition(Element):
         value = 1 if self._probability == 1 else self._random_generator.uniform(0, 1)
         if value <= self._probability:
             self._hold(timer)
-        else:
-            pass
         self._release(timer)
         self._filter_and_sort_storage(timer)
-        return None if len(self._storage) == 0 else self._storage
+        response = None if len(self._storage) == 0 else self._storage
+        self._storage = list(filter(lambda x: x != timer, self._storage))
+        return response
 
     def _check_hold_condition(self):
         for _input in self._inputs:
@@ -81,7 +81,7 @@ class Transition(Element):
         :return: None
         """
         if len(self._storage) > 0:
-            self._storage = sorted(list(filter(lambda x: x > timer, self._storage)))
+            self._storage = sorted(list(filter(lambda x: x >= timer, self._storage)))
 
     def _hold(self, timer: float) -> NoReturn:
         """
