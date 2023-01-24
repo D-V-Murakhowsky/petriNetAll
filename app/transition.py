@@ -57,16 +57,22 @@ class Transition(Element):
 
     def process(self, timer: float) -> List[float]:
         """
-        Main method
-        :param timer: current imitation time
-        :return: time moments to add in general time moments queue
+        Основний метод
+        :param timer: поточний модельний час
+        :return: моменти часу, що мають бути додані до черги модельних моментів часу,
+         в які відбуваються зміни стану системи
         """
 
+        # кроки процесу функціонування переходу
         future_release_moments = self._hold(timer) if self._check_hold_condition() else None
         self._update_storage(future_release_moments)
         self._release(timer)
+
+        # перевірка коректності роботи алгоритму
+        # після виконання усіх кроків в списку моментів не повинно залишатися поточного моменту
         if timer in self._storage:
             raise RuntimeError
+
         return future_release_moments
 
     def _check_hold_condition(self):
@@ -113,7 +119,7 @@ class Transition(Element):
         generated_time_moments = []
 
         if transition_quantity > 0:
-            self._statistics['holds'].append(timer)
+            self._statistics['holds'].append((timer, transition_quantity))
             for _input in self._inputs:
                 _input[0].exclude(timer, transition_quantity * _input[1])
             for _ in range(transition_quantity):
@@ -124,12 +130,12 @@ class Transition(Element):
 
     def _release(self, timer: float) -> NoReturn:
         """
-        Put markers in the outputs
-        :param timer: current imitation time
+        Додавання маркерів до місць, що поєднані з виходами з переходу
+        :param timer: поточний час імітації
         :return: None
         """
         if (transition_quantity := len(list(filter(lambda x: x == timer, self._storage)))) > 0:
-            self._statistics['releases'].append(timer)
+            self._statistics['releases'].append((timer, transition_quantity))
             for output in self._outputs:
                 output[0].append(timer, transition_quantity * output[1])
                 self._storage.pop(0)

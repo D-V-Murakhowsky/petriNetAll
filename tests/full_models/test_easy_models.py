@@ -33,10 +33,10 @@ TRANSITIONS_LIMITED_CAPACITY = [{'str_id': 'prob_06', 'prob': 0.6, "stats": True
                                  'time_distro': {'type_of_distribution': 'exp', 'scale': 0.5}}]
 
 ARCS = [('Generator', 'Arrival', 1),
-        ('Arrival', 'prob_06', 1),
+        ('Arrival', 'prob_06', 2),
         ('Arrival', 'prob_04', 1),
         ('prob_06', 'Pre_exit', 1),
-        ('prob_04', 'Pre_exit', 1),
+        ('prob_04', 'Pre_exit', 3),
         ('Pre_exit', 'to_exit', 1),
         ('to_exit', 'Exit', 1)]
 
