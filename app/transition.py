@@ -2,7 +2,6 @@ from typing import NoReturn, Union, Dict, List
 from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.random import default_rng
 from sortedcontainers import SortedList
 
 from app.models import Element, Distribution
@@ -18,7 +17,6 @@ class Transition(Element):
         super().__init__(str_id=str_id, parent=parent,
                          save_stats=kwargs['save_stats'] if 'save_stats' in kwargs else False)
         self._time_distro = Distribution.from_dict(time_distro) if isinstance(time_distro, dict) else time_distro
-        self._random_generator = default_rng()
         self._storage = SortedList()
         self._priority = priority
         self._probability = kwargs['prob'] if 'prob' in kwargs else 1
@@ -82,7 +80,7 @@ class Transition(Element):
         :return: True - перехід активується, False - перехід не активується
         """
         if self._probability < 1:
-            if self._random_generator.uniform(0, 1) > self._probability:
+            if self._time_distro.get_value() > self._probability:
                 return False
 
         for _input in self._inputs:

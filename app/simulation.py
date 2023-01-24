@@ -12,7 +12,7 @@ class Simulation:
 
     # TODO Extract scheme from Simulation. Use it as a mediator.
 
-    def __init__(self, max_time: int, generator: Dict, places: List[Dict], transitions: List[Dict], arcs: List[Tuple]):
+    def __init__(self, max_time: float, generator: Dict, places: List[Dict], transitions: List[Dict], arcs: List[Tuple]):
         # призначення полів екземпляру класу
         self._max_time: float = max_time
         self._time_moments = SortedQueue(iterable=[0])
