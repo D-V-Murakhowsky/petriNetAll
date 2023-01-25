@@ -97,7 +97,7 @@ class Simulation:
             else:
                 break
 
-        print(f'Total simulation_zero time = {timer}')
+        print(f'Total time = {timer}')
         print(f'Total entities arrived: {self._generator.total_arrivals}')
 
         return self._return_statistics()

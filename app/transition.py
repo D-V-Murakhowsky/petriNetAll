@@ -2,15 +2,19 @@ from typing import NoReturn, Union, Dict, List
 from typing import TYPE_CHECKING
 
 import numpy as np
+from numpy.random import default_rng
 from sortedcontainers import SortedList
 
-from app.models import Element, Distribution
+from .models import Element, Distribution
+from . import SEED
 
 if TYPE_CHECKING:
     from .simulation import Simulation
 
 
 class Transition(Element):
+
+    _local_rng = default_rng(SEED) if SEED > -1 else default_rng()
 
     def __init__(self, time_distro: Union["Distribution", Dict],
                  parent: "Simulation", str_id: str, priority: int = 1000, **kwargs):
@@ -53,6 +57,10 @@ class Transition(Element):
     def statistics(self):
         return None
 
+    @property
+    def storage(self):
+        return self._storage
+
     def process(self, timer: float) -> List[float]:
         """
         Основний метод
@@ -62,7 +70,11 @@ class Transition(Element):
         """
 
         # кроки процесу функціонування переходу
-        future_release_moments = self._hold(timer) if self._check_hold_condition() else None
+        if self.load == 0:
+            free_cells = self._capacity
+        else:
+            free_cells = self._capacity - len(list(filter(lambda x: x > timer, self._storage)))
+        future_release_moments = self._hold(timer, free_cells) if self._check_hold_condition(timer) else None
         self._update_storage(future_release_moments)
         self._release(timer)
 
@@ -73,14 +85,14 @@ class Transition(Element):
 
         return future_release_moments
 
-    def _check_hold_condition(self):
+    def _check_hold_condition(self, timer: float):
         """
         Перевірка умови активації переходу. За умови активації зменшується відповідна кількість фішок у місцях,
         що поєднані із входом переходу
         :return: True - перехід активується, False - перехід не активується
         """
         if self._probability < 1:
-            if self._time_distro.get_value() > self._probability:
+            if self._local_rng.uniform(0, 1) > self._probability:
                 return False
 
         for _input in self._inputs:
@@ -105,14 +117,14 @@ class Transition(Element):
         if len(self._storage) > 0:
             self._storage = sorted(list(filter(lambda x: x >= timer, self._storage)))
 
-    def _hold(self, timer: float) -> Union[List, None]:
+    def _hold(self, timer: float, free_cells: int) -> Union[List, None]:
         """
         Отримання маркерів з місць, що поєднані з входами переходу
         :param timer: поточне значення модельного часу
         :return: кількість транзакцій, що має бути виконана
         """
 
-        transition_quantity = min([int(_input[0].load / _input[1]) for _input in self._inputs])
+        transition_quantity = min([int(_input[0].load / _input[1]) for _input in self._inputs] + [free_cells])
         transition_quantity = min(transition_quantity, 1) if self._is_conflict else transition_quantity
         generated_time_moments = []
 
@@ -132,11 +144,13 @@ class Transition(Element):
         :param timer: поточний час імітації
         :return: None
         """
-        if (transition_quantity := len(list(filter(lambda x: x == timer, self._storage)))) > 0:
+        transition_quantity = len(list(filter(lambda x: x == timer, self._storage)))
+        if transition_quantity > 0:
             self._statistics['releases'].append((timer, transition_quantity))
             for output in self._outputs:
                 output[0].append(timer, transition_quantity * output[1])
-                self._storage.pop(0)
+                for _ in range(transition_quantity):
+                    self._storage.pop(0)
 
 
 

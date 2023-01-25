@@ -152,7 +152,7 @@ class Element(ABC):
         self._outputs: Union[List[Element], None] = None
 
         self._load = 0
-        self._stats = [] if save_stats else None
+        self._statistics = [] if save_stats else None
 
     @property
     def load(self):
@@ -160,11 +160,11 @@ class Element(ABC):
 
     @property
     def save_stats(self):
-        return self._stats is not None
+        return self._statistics is not None
 
     @property
     def statistics(self):
-        return self._stats
+        return self._statistics
 
     @property
     def str_id(self):
